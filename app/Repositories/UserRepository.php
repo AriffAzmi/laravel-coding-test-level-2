@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\User;
+
+use Illuminate\Support\Facades\Hash;
 /**
  * 
  */
@@ -18,16 +20,15 @@ class UserRepository extends Repository
 		$this->model = new User();
 	}
 
-	public function save($data) : string
+	public function save($data)
 	{
 		$user = User::create([
-      		'name' => $data['name'],
-           	'email' => $data['email'],
-           	'password' => Hash::make($data['password']),
+      		'name' => $data->name,
+           	'email' => $data->email,
+           	'password' => Hash::make($data->password),
+           	'api_key' => Hash::make($data->email),
        	]);
 
-       	$token = $user->createToken('auth_token')->plainTextToken;
-
-       	return $token;
+       	return $user;
 	}
 }

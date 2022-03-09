@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\v1;
 
 use App\Models\Task;
+use App\Http\Controllers\Controller;
+
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
