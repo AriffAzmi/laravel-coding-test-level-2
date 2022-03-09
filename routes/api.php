@@ -22,7 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::group([
 	'prefix' => config('api.version')
+	'namespace' => config('api.version')
 ], function() {
     //
-	Route::post('/register', [AuthController::class, 'register']);
+	Route::post('/register', 'AuthController@register');
 });
