@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1;
 
 use App\Repositories\UserRepository;
 use App\Http\Controllers\Controller;
+use App\Services\AuthService;
 
 use Auth;
 use Illuminate\Http\Request;
@@ -21,53 +22,60 @@ class AuthController extends Controller
 
     public function register(Request $request)
 	{
+		$validatedData = $request->validate([
+			'name' => 'required|string|max:255',
+			'email' => 'required|string|email|max:255|unique:users',
+			'password' => 'required|string|min:8',
+		]);
+
 		try {
 			
-			$validation = Validator::make($request->all(),[
-				'name' => 'required|string|max:255',
-		   		'email' => 'required|string|email|max:255|unique:users',
-		   		'password' => 'required|string|min:8',
-			]);
-
-			if ($validation->fails()) {
-				
-				$response = collect(config('api-response.500'));
-				$response->put('message','Validation errors.');
-				$response->put('errors',$validation->errors());
-
-				return response()->json($response->all());
-			}
-			
-			$user = $this->userRepository->save($request);
-
-			$response = collect(config('api-response.200'));
-            $response->put('message','User successfully created.');
-            $response->put('user',$user);
-
-            Auth::attempt($request->only(['email','password']));
+			$token = $this->userRepository->save($validatedData);
             
-            return response()->json($response->all());
+            return response()->json([
+            	'status' => true,
+            	'message' => 'User successfully created.',
+            	'access_token' => $token,
+            	'token_type' => 'Bearer'
+            ]);
 
 		} catch (\Exception $e) {
 			
-			$response = collect(config('api-response.500'));
-			$response->put('message',$e->getMessage());
-			$response->put('errors',$e);
-
-			// die($e->getMessage());
-			return response()->json($response->all());
+			return response()->json([
+				'status' => false,
+				'message' => $e->getMessage()
+			],$e->getCode());
 		}
+	}
 
+	public function login(Request $request)
+	{
+		$login = AuthService::login($request);
+
+		return response()->json([
+			'status' => true,
+			'message' => 'Auth successfull.',
+			'access_token' => $token,
+        	'token_type' => 'Bearer'
+		]);
+	}
+
+	public function logout(Request $request)
+	{
+		AuthService::logout($request);
+
+		return response()->json([
+			'status' => true,
+			'message' => 'User successfully logout.'
+		]);
 	}
 
 	public function me(Request $request)
 	{
-		$user = Auth::user();
-
-		$response = collect(config('api-response.200'));
-        $response->put('message','User info successfully retrieved.');
-        $response->put('user',$user);
-
-        return response()->json($response->all());
+        return response()->json([
+        	'status' => true,
+        	'message' => 'User info successfully retrieved.',
+        	'user' => $request->user()
+        ]);
 	}
 }

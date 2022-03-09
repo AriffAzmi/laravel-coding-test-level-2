@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\User;
+use App\Services\AuthService;
 
 use Illuminate\Support\Facades\Hash;
 /**
@@ -26,9 +27,32 @@ class UserRepository extends Repository
       		'name' => $data->name,
            	'email' => $data->email,
            	'password' => Hash::make($data->password),
-           	'api_key' => Hash::make($data->email),
        	]);
 
-       	return $user;
+		$token = AuthService::createToken($user,'auth_token');
+		
+       	return $token;
+	}
+
+	public function findByID($id)
+	{
+		return User::findOrFail($id);
+	}
+
+	public function put($id,$data)
+	{
+		$user = $this->findByID($id);
+		return $user->update($data);
+	}
+
+	public function patch($id,$data)
+	{
+		$user = $this->findByID($id);
+		return $user->update($data);
+	}
+
+	public function delete($id)
+	{
+		return User::delete($id);
 	}
 }
